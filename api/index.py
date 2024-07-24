@@ -1,10 +1,15 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from yt_dlp import YoutubeDL
-from typing import Any, Dict
+from typing import Dict, Optional
 
 app = FastAPI()
 
-def get_video_audio_urls(video_url: str) -> Dict[str, str]:
+# Define a Pydantic model for the request body
+class VideoUrlRequest(BaseModel):
+    url: str
+
+def get_video_audio_urls(video_url: str) -> Dict[str, Optional[str]]:
     ydl_opts = {
         'quiet': True,
         'skip_download': True,
@@ -37,9 +42,8 @@ def get_video_audio_urls(video_url: str) -> Dict[str, str]:
         return result
 
 @app.post('/api/getVideoAudioUrls')
-async def get_video_audio(request: Any):
-    request_data = await request.json()
-    video_url = request_data.get('url')
+async def get_video_audio(request: VideoUrlRequest):
+    video_url = request.url
     
     if not video_url:
         raise HTTPException(status_code=400, detail="URL parameter is missing")
